@@ -6,6 +6,8 @@ import java.util.Set;
 public class Company {
 	private final String name;
 	private final Set<Project> projectsCarriedout = new HashSet<Project>();
+	private final Set<Worker> assignedWorkers = new HashSet<Worker>();
+	private final Set<Worker> availableWorkers = new HashSet<Worker>();
 
 	public Company(final String name) {
 		this.name = name;
@@ -16,18 +18,17 @@ public class Company {
 	}
 
 	public Set<Worker> getAvailableWorkers() {
-		//TODO ::
-		return new HashSet<Worker>();
+		return availableWorkers;
 	}
 
 	public Set<Worker> getAssignedWorkers() {
-		//TODO ::
-		return new HashSet<Worker>();
+		return assignedWorkers;
 	}
 
 	public Set<Worker> getUnassignedWorkers() {
-		//TODO ::
-		return new HashSet<Worker>();
+		final Set<Worker> unassignedWorkers = availableWorkers;
+		unassignedWorkers.removeAll(assignedWorkers);
+		return unassignedWorkers;
 	}
 
 	@Override
@@ -67,7 +68,7 @@ public class Company {
 		 *  and number of projects carried out. For example, a company called ABC that has 20 available 
 		 *  workers and 10 projects will result in the string ABC:20:10.
 		 */
-		return "";
+		return name + ":" + availableWorkers.size() + ":" + projectsCarriedout.size() ;
 	}
 
 
@@ -75,6 +76,10 @@ public class Company {
 		//TODO ::
 		//A worker "w" who is currently not in the pool of available workers gets added to the 
 		//pool of available workers.
+		if(!availableWorkers.contains(worker)) {
+			availableWorkers.add(worker);
+		}
+
 	}
 
 	public void assign(final Worker worker, final Project project) {
@@ -90,6 +95,26 @@ public class Company {
 		 *  at the same time. However, the worker cannot be in the assigned pool if they are not in the available pool. 
 		 *  Think of the available pool as the pool of employed workers.
 		 */
+
+		if( !availableWorkers.contains(worker) || project.getWorkers().contains(worker)) {
+			//Cannot Assign worker
+			return;
+		}
+
+		if(project.getStatus().equals(ProjectStatus.ACTIVE) || project.getStatus().equals(ProjectStatus.FINISHED) ) {
+			return;
+		}
+
+		if(worker.willOverload(project)) {
+			return;
+		}
+
+		if(!project.isHelpful(worker)) {
+			return;
+		}
+
+		assignedWorkers.add(worker);
+		assignWorkerToProject(worker, project);
 	}
 
 	public void unassign(final Worker worker, final Project project) {
@@ -100,6 +125,19 @@ public class Company {
 		 * the company. If the qualification requirements of an ACTIVE project are no longer met, 
 		 * that project is marked SUSPENDED. A PLANNED OR SUSPENDED project remains in that state.
 		 */
+
+		if(project.getWorkers().contains(worker)) {
+			project.removeWorker(worker);
+			worker.unassignProject(project);
+			if(worker.getAssignedProjects().isEmpty()) {
+				assignedWorkers.remove(worker);
+			}
+			if(project.missingQualifications().size() > 0 && project.getStatus().equals(ProjectStatus.ACTIVE)) {
+				project.setStatus(ProjectStatus.SUSPENDED);
+			}
+		} else {
+			//Worker not assigned!!!
+		}
 	}
 
 	public void unassignAll(final Worker worker) {
@@ -109,6 +147,17 @@ public class Company {
 		 * projects as needed.
 		 * 
 		 */
+
+		for(final Project project : projectsCarriedout) {
+			if(project.getWorkers().contains(worker)) {
+				project.removeWorker(worker);
+				if(project.missingQualifications().size() > 0 && project.getStatus().equals(ProjectStatus.ACTIVE)) {
+					project.setStatus(ProjectStatus.SUSPENDED);
+				}
+			}
+		}
+		worker.unassignAllProjects();
+		assignedWorkers.remove(worker);
 	}
 
 	public void start(final Project project) {
@@ -118,6 +167,18 @@ public class Company {
 		 * the project remains PLANNED or SUSPENDED (i.e., as it was before the method was called).
 		 * 
 		 */
+		if(!(project.getStatus().equals(ProjectStatus.PLANNED) || project.getStatus().equals(ProjectStatus.SUSPENDED))) {
+			return;
+		} else {
+			//Project not ready for start
+		}
+
+		if(checkWorkerMeetsProjectRequirements(project)) {
+			project.setStatus(ProjectStatus.ACTIVE);
+		} else {
+			//Project not ready for start
+		}
+
 	}
 
 	public void finish(final Project project) {
@@ -128,6 +189,20 @@ public class Company {
 		 *  A SUSPENDED or PLANNED project remains as it was.
 		 * 
 		 */
+		if(project.getStatus().equals(ProjectStatus.ACTIVE)) {
+			project.setStatus(ProjectStatus.FINISHED);
+			for(final Worker worker : project.getWorkers()) {
+				final Set <Project> assignedProjects = worker.getAssignedProjects();
+				if(assignedProjects.size() == 1) {
+					if(assignedProjects.iterator().next().getName().equals(project.getName())) {
+						assignedWorkers.add(worker);
+					}
+				}
+				worker.unassignProject(project);
+			}
+			project.removeAllWorkers();
+		}
+
 	}
 
 	public Project createProject(final String projectName, final Set<Qualification> qualificationSet, final ProjectSize size,
@@ -142,13 +217,33 @@ public class Company {
 
 
 	private Project createNewProjectAndUpdateStatus(final String projectName, final ProjectSize projectSize, final Set<Qualification> qualificationSet) {
-		final Project newProject = new Project(name, projectSize, ProjectStatus.PLANNED);
+		final Project newProject = new Project(projectName, projectSize, ProjectStatus.PLANNED);
 
 		for(final Qualification qualifcation : qualificationSet ) {
 			newProject.addQualificationRequiremnet(qualifcation);
 		}
-
 		return newProject;
 	}
+
+	private boolean checkWorkerMeetsProjectRequirements(final Project project) {
+		final Set<Qualification> projectRequiremnets =  project.getQualificationRequiremnet();
+		final Set<Qualification> workerQualifications = new HashSet<>();
+		for(final Worker worker : project.getWorkers()) {
+			workerQualifications.addAll(worker.getQualifications());
+		}
+
+		for(final Qualification projectRequiremnet : projectRequiremnets) {
+			if(!workerQualifications.contains(projectRequiremnet)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private void assignWorkerToProject(final Worker worker, final Project project) {
+		worker.assignProject(project);
+		project.addWorker(worker);
+	}
+
 
 }

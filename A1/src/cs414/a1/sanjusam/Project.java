@@ -7,10 +7,10 @@ public class Project {
 	private final String name;
 	private final ProjectSize projectSize;
 	private ProjectStatus projectStatus;
-	
-	//*Added as per design doc!
+
 	private final Set <Qualification> qualificationRequirements = new HashSet<>();
-	
+	private final Set <Worker> workerSet = new HashSet<>();
+
 	public Project(final String name, final ProjectSize projectSize, final ProjectStatus projectStatus) {
 		this.name = name;
 		this.projectSize = projectSize;
@@ -28,24 +28,31 @@ public class Project {
 	public ProjectStatus getStatus() {
 		return projectStatus;
 	}
-	
-	public void setStatus (final ProjectStatus projectStatus) {
+
+	public void setStatus(final ProjectStatus projectStatus) {
 		this.projectStatus = projectStatus;
 	}
-	
+
 	public Set<Qualification> missingQualifications() {
-		//TODO -- Compare the qualifications required by the project and those that 
-//		are met by the workers who are assigned to the project. 
-//		Return the qualifications that are not met. An empty set (not null set)
-//		 is returned when all the qualification requirements are met. 
-//		//The order of qualifications is not important.
-		return new HashSet<Qualification>();
+		final Set<Qualification> workerQualifications = new HashSet<>();
+		for(final Worker worker : workerSet) {
+			workerQualifications.addAll(worker.getQualifications());
+		}
+		Set<Qualification> missingQualifications = new HashSet<>();
+		for(final Qualification qualification : qualificationRequirements) {
+			if(!workerQualifications.contains(qualification)) {
+				missingQualifications.add(qualification);
+			}
+		}
+		return missingQualifications;
 	}
-	
-	public boolean isHelpful() {
-		//isHelpful(w : Worker) :
-//		If at least one of the missing qualification 
-//		requirements of a project is satisfied by the worker, then return true, else return false. 
+
+	public boolean isHelpful(final Worker worker) {
+		for (final Qualification qualification : missingQualifications()) {
+			if(worker.getQualifications().contains(qualification)) {
+				return true;
+			}
+		}
 		return false;
 	}
 
@@ -81,14 +88,32 @@ public class Project {
 
 	@Override
 	public String toString() {
-		//TOD ::  name, colon, number of assigned workers, colon, status
-		//CS5Anniv:10:PLANNED
-		return "";
+		return name + ":" + workerSet.size() + ":" + projectStatus;
 	}
-	
-	//*Added as per design doc!
-	public void addQualificationRequiremnet(final Qualification qualification) {
+
+	/*package */ void addQualificationRequiremnet(final Qualification qualification) {
 		qualificationRequirements.add(qualification);
 	}
+
+	/*package */ Set <Qualification> getQualificationRequiremnet() {
+		return qualificationRequirements;
+	}
+
+	/*package */  Set<Worker> getWorkers() {
+		return workerSet;
+	}
+
+	/*package */  void addWorker(final Worker worker) {
+		workerSet.add(worker);
+	}
+
+	/*package */  void removeWorker(final Worker worker) {
+		workerSet.remove(worker);
+	}
+
+	/*package */  void removeAllWorkers() {
+		workerSet.clear();
+	}
+
 
 }

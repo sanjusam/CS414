@@ -3,7 +3,7 @@ package cs414.a1.sanjusam;
 public class Qualification {
 
 	private final String description;
-	
+
 	Qualification (final String description) {
 		this.description = description;
 	}

@@ -10,16 +10,16 @@ public class QualificationTest {
 		//**Given
 		final Qualification graduateDegreeOne = new Qualification("graduate");
 		final Qualification graduateDegreeTwo = new Qualification("graduate");
-		
+
 		//**Then
 		Assert.assertTrue(graduateDegreeOne.equals(graduateDegreeTwo));
 	}
-	
+
 	@Test
 	public void testEqualForSameObject() throws Exception {
 		//**Given
 		final Qualification graduateDegree = new Qualification("graduate");
-				
+
 		//**Then
 		Assert.assertTrue(graduateDegree.equals(graduateDegree));
 	}
@@ -28,17 +28,17 @@ public class QualificationTest {
 		//**Given
 		final Qualification graduate  = new Qualification("graduate");
 		final Qualification underGrad = new Qualification("under-grad");
-		
+
 		//**Then
 		Assert.assertFalse(graduate.equals(underGrad));
 	}
-	
+
 	@Test
 	public void testNotEqualWhenNullObject() throws Exception {
 		//**Given
 		final Qualification graduateDegreeOne = new Qualification("graduate");
 		final Qualification graduateDegreeTwo = null;
-		
+
 		//**Then
 		Assert.assertFalse(graduateDegreeOne.equals(graduateDegreeTwo));
 	}
@@ -48,7 +48,7 @@ public class QualificationTest {
 		//**Given
 		final Qualification graduateDegreeOne = new Qualification("graduate");
 		final Object graduateDegreeTwo = new Object();
-		
+
 		//**Then
 		Assert.assertFalse(graduateDegreeOne.equals(graduateDegreeTwo));
 	}
