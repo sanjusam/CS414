@@ -114,6 +114,40 @@ public class CompanyTest {
 	}
 
 	@Test
+	public void testAssignWorkerNotPresetnInAvailableWorker() throws Exception {
+		//**Given
+		final Project companyOneProject = companyOne.createProject("Netowork-Configs", qualificationNeeded, ProjectSize.MEDIUM, ProjectStatus.PLANNED);
+		final Worker workerOne = new Worker("Sanju1", qualificationNeeded);
+
+		//**When
+		companyOne.assign(workerOne, companyOneProject);
+
+		//**Then
+		Assert.assertEquals(0, companyOne.getAssignedWorkers().size());
+		Assert.assertEquals(0, companyOne.getAvailableWorkers().size());
+	}
+
+	@Test
+	public void testOverLoadWorkerAndThenAssignFailure() throws Exception {
+		//**Given  -- Overloaded worker
+		final Project companyOneProject = companyOne.createProject("Netowork-Configs", qualificationNeeded, ProjectSize.MEDIUM, ProjectStatus.PLANNED);
+		final Worker workerOne = new Worker("Sanju1", qualificationNeeded);
+		companyOne.addToAvailableWorkerPool(workerOne);
+		workerOne.assignProject(new Project("Project1", ProjectSize.LARGE, ProjectStatus.PLANNED));
+		workerOne.assignProject(new Project("Project2", ProjectSize.LARGE, ProjectStatus.PLANNED));
+		workerOne.assignProject(new Project("Project3", ProjectSize.LARGE, ProjectStatus.PLANNED));
+		workerOne.assignProject(new Project("Project4", ProjectSize.LARGE, ProjectStatus.PLANNED));
+		workerOne.assignProject(new Project("Project5", ProjectSize.LARGE, ProjectStatus.PLANNED));
+
+		//**When
+		companyOne.assign(workerOne, companyOneProject);
+
+		//**Then -- Worker not assigned
+		Assert.assertEquals(0, companyOne.getAssignedWorkers().size());
+		Assert.assertEquals(1, companyOne.getAvailableWorkers().size());		
+	}
+
+	@Test
 	public void testCreateProjectAndAssignWorkersInvalidQualificationFailure() throws Exception {
 		//**Given
 		final Project companyOneProject = companyOne.createProject("Netowork-Configs", qualificationNeeded, ProjectSize.MEDIUM, ProjectStatus.PLANNED);
@@ -148,7 +182,6 @@ public class CompanyTest {
 		//**When
 		companyOne.unassign(workerTwo, companyOneProject);
 
-
 		//*Then
 		Assert.assertEquals(1, companyOne.getAssignedWorkers().size());
 		Assert.assertTrue(companyOne.getAssignedWorkers().contains(workerOne));
@@ -157,10 +190,41 @@ public class CompanyTest {
 		Assert.assertTrue(companyOne.getAvailableWorkers().contains(workerOne));
 		Assert.assertEquals(4, companyOne.getUnassignedWorkers().size());
 	}
-	
+
+	@Test
+	public void testUnassignWorkerAndCheckProjectStatus() throws Exception {
+
+		//**Given
+		final Project companyOneProject = companyOne.createProject("Netowork-Configs", qualificationNeeded, ProjectSize.MEDIUM, ProjectStatus.PLANNED);
+		final Worker workerOne = new Worker("Sanju1", qualificationSetOne);  
+		final Worker workerTwo = new Worker("Sanju2", qualificationSetTwo); 
+		final Worker workerThree = new Worker("Sanju3", qualificationSetThree); 
+		final Worker workerFour = new Worker("Sanju4", qualificationSetFour);
+		final Worker workerFive = new Worker("Sanju5", qualificationSetFive);
+		companyOne.addToAvailableWorkerPool(workerOne);
+		companyOne.addToAvailableWorkerPool(workerTwo);
+		companyOne.addToAvailableWorkerPool(workerThree);
+		companyOne.addToAvailableWorkerPool(workerFour);
+		companyOne.addToAvailableWorkerPool(workerFive);
+
+		companyOne.assign(workerOne, companyOneProject);
+		companyOne.assign(workerTwo, companyOneProject);
+		companyOne.assign(workerThree, companyOneProject);
+		companyOne.assign(workerFour, companyOneProject);
+		companyOne.assign(workerFive, companyOneProject);
+		companyOneProject.setStatus(ProjectStatus.ACTIVE);
+
+
+		//**When
+		companyOne.unassign(workerTwo, companyOneProject);
+
+		//**Then
+		Assert.assertEquals(ProjectStatus.SUSPENDED, companyOneProject.getStatus());
+	}
+
 	@Test
 	public void testCreateProjectAndUnAssignAllWorkers() throws Exception {
-		//**Given
+		//**Given -- Company, workers and Status ACTIVE
 		final Project companyOneProject = companyOne.createProject("Netowork-Configs", qualificationNeeded, ProjectSize.MEDIUM, ProjectStatus.PLANNED);
 		final Worker workerOne = new Worker("Sanju1", qualificationSetOne);  
 		final Worker workerTwo = new Worker("Sanju2", qualificationSetTwo); 
@@ -174,17 +238,127 @@ public class CompanyTest {
 		companyOne.addToAvailableWorkerPool(workerFive);
 		companyOne.assign(workerOne, companyOneProject);
 		companyOne.assign(workerTwo, companyOneProject);
+		companyOneProject.setStatus(ProjectStatus.ACTIVE);
 
 		//**When
 		companyOne.unassignAll(workerOne);
 
-
-		//*Then
+		//*Then  -- Project Status SUSPENDED
 		Assert.assertEquals(1, companyOne.getAssignedWorkers().size());
 		Assert.assertFalse(companyOne.getAssignedWorkers().contains(workerOne));
 		Assert.assertTrue(companyOne.getAssignedWorkers().contains(workerTwo));
 		Assert.assertEquals(5, companyOne.getAvailableWorkers().size());
 		Assert.assertTrue(companyOne.getAvailableWorkers().contains(workerOne));
 		Assert.assertEquals(4, companyOne.getUnassignedWorkers().size());
+		Assert.assertEquals(ProjectStatus.SUSPENDED, companyOneProject.getStatus());
 	}
+
+
+	@Test
+	public void testStartProjectFailureOnProjectStatus() throws Exception {
+		//**Given  -- Company, workers and Status ACTIVE
+		final Project companyOneProject = companyOne.createProject("Netowork-Configs", qualificationNeeded, ProjectSize.MEDIUM, ProjectStatus.PLANNED);
+		final Worker workerOne = new Worker("Sanju1", qualificationSetOne);  
+		final Worker workerTwo = new Worker("Sanju2", qualificationSetTwo); 
+		final Worker workerThree = new Worker("Sanju3", qualificationSetThree); 
+		final Worker workerFour = new Worker("Sanju4", qualificationSetFour);
+		final Worker workerFive = new Worker("Sanju5", qualificationSetFive);
+		companyOne.addToAvailableWorkerPool(workerOne);
+		companyOne.addToAvailableWorkerPool(workerTwo);
+		companyOne.addToAvailableWorkerPool(workerThree);
+		companyOne.addToAvailableWorkerPool(workerFour);
+		companyOne.addToAvailableWorkerPool(workerFive);
+		companyOne.assign(workerOne, companyOneProject);
+		companyOne.assign(workerTwo, companyOneProject);
+		companyOneProject.setStatus(ProjectStatus.ACTIVE);
+
+		//**When
+		companyOne.start(companyOneProject);
+
+		//**Then  -- Status does not change.
+		Assert.assertEquals(ProjectStatus.ACTIVE, companyOneProject.getStatus());
+	}
+
+	@Test
+	public void testStartProjectFailureMissingRequiremnt() throws Exception {
+		//**Given  -- Company, workers and Status Planned, but missing one requirement "Database - Oracle" 
+		final Project companyOneProject = companyOne.createProject("Netowork-Configs", qualificationNeeded, ProjectSize.MEDIUM, ProjectStatus.PLANNED);
+		final Worker workerOne = new Worker("Sanju1", qualificationSetOne);  
+		final Worker workerTwo = new Worker("Sanju2", qualificationSetTwo); 
+		final Worker workerThree = new Worker("Sanju3", qualificationSetThree); 
+		final Worker workerFive = new Worker("Sanju5", qualificationSetFive);
+		companyOne.addToAvailableWorkerPool(workerOne);
+		companyOne.addToAvailableWorkerPool(workerTwo);
+		companyOne.addToAvailableWorkerPool(workerThree);
+		companyOne.addToAvailableWorkerPool(workerFive);
+		companyOne.assign(workerOne, companyOneProject);
+		companyOne.assign(workerTwo, companyOneProject);
+		companyOne.assign(workerThree, companyOneProject);
+		companyOne.assign(workerFour, companyOneProject);
+		companyOne.assign(workerFive, companyOneProject);
+
+		//**When
+		companyOne.start(companyOneProject);
+
+		//**Then  -- Status does not change.
+		Assert.assertEquals(ProjectStatus.PLANNED, companyOneProject.getStatus());
+	}
+
+	@Test
+	public void testStartProjectSuccess() throws Exception {
+		//**Given  -- Company, workers and Status Planned
+		final Project companyOneProject = companyOne.createProject("Netowork-Configs", qualificationNeeded, ProjectSize.MEDIUM, ProjectStatus.PLANNED);
+		final Worker workerOne = new Worker("Sanju1", qualificationSetOne);  
+		final Worker workerTwo = new Worker("Sanju2", qualificationSetTwo); 
+		final Worker workerThree = new Worker("Sanju3", qualificationSetThree); 
+		final Worker workerFour = new Worker("Sanju4", qualificationSetFour);
+		final Worker workerFive = new Worker("Sanju5", qualificationSetFive);
+		companyOne.addToAvailableWorkerPool(workerOne);
+		companyOne.addToAvailableWorkerPool(workerTwo);
+		companyOne.addToAvailableWorkerPool(workerThree);
+		companyOne.addToAvailableWorkerPool(workerFour);
+		companyOne.addToAvailableWorkerPool(workerFive);
+		companyOne.assign(workerOne, companyOneProject);
+		companyOne.assign(workerTwo, companyOneProject);
+		companyOne.assign(workerThree, companyOneProject);
+		companyOne.assign(workerFour, companyOneProject);
+		companyOne.assign(workerFive, companyOneProject);
+
+		//**When
+		companyOne.start(companyOneProject);
+
+		//**Then  -- Status does not change.
+		Assert.assertEquals(ProjectStatus.ACTIVE, companyOneProject.getStatus());
+	}
+
+	@Test
+	public void testFinishSuccess() throws Exception {
+		//**Given  -- Company, workers and Status Planned
+		final Project companyOneProject = companyOne.createProject("Netowork-Configs", qualificationNeeded, ProjectSize.MEDIUM, ProjectStatus.PLANNED);
+		final Worker workerOne = new Worker("Sanju1", qualificationSetOne);  
+		final Worker workerTwo = new Worker("Sanju2", qualificationSetTwo); 
+		final Worker workerThree = new Worker("Sanju3", qualificationSetThree); 
+		final Worker workerFour = new Worker("Sanju4", qualificationSetFour);
+		final Worker workerFive = new Worker("Sanju5", qualificationSetFive);
+		companyOne.addToAvailableWorkerPool(workerOne);
+		companyOne.addToAvailableWorkerPool(workerTwo);
+		companyOne.addToAvailableWorkerPool(workerThree);
+		companyOne.addToAvailableWorkerPool(workerFour);
+		companyOne.addToAvailableWorkerPool(workerFive);
+		companyOne.assign(workerOne, companyOneProject);
+		companyOne.assign(workerTwo, companyOneProject);
+		companyOne.assign(workerThree, companyOneProject);
+		companyOne.assign(workerFour, companyOneProject);
+		companyOne.assign(workerFive, companyOneProject);
+		companyOneProject.setStatus(ProjectStatus.ACTIVE);
+
+		//**When
+		companyOne.finish(companyOneProject);
+
+		//**Then  -- Status does not change.
+		Assert.assertEquals(ProjectStatus.FINISHED, companyOneProject.getStatus());
+		Assert.assertEquals(0, companyOneProject.getWorkers().size());
+		Assert.assertEquals(0,  companyOne.getAssignedWorkers().size());
+	}
+
 }

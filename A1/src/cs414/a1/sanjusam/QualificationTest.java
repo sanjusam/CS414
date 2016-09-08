@@ -52,4 +52,13 @@ public class QualificationTest {
 		//**Then
 		Assert.assertFalse(graduateDegreeOne.equals(graduateDegreeTwo));
 	}
+	
+	@Test
+	public void testToString() throws Exception {
+		//**Given
+		final Qualification graduateDegreeOne = new Qualification("graduate");
+		
+		//**Then
+		Assert.assertEquals("graduate", graduateDegreeOne.toString());
+	}
 }

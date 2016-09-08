@@ -33,4 +33,12 @@ public class Qualification {
 			return false;
 		return true;
 	}
+
+	@Override
+	public String toString() {
+		return description;
+	}
+
+
+
 }

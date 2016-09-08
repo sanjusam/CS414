@@ -63,53 +63,37 @@ public class Company {
 
 	@Override
 	public String toString() {
-		/*
-		 * Returns a String that includes the company name, colon, number of available workers, colon,
-		 *  and number of projects carried out. For example, a company called ABC that has 20 available 
-		 *  workers and 10 projects will result in the string ABC:20:10.
-		 */
 		return name + ":" + availableWorkers.size() + ":" + projectsCarriedout.size() ;
 	}
 
 
 	public void addToAvailableWorkerPool(final Worker worker) {
-		//TODO ::
-		//A worker "w" who is currently not in the pool of available workers gets added to the 
-		//pool of available workers.
 		if(!availableWorkers.contains(worker)) {
 			availableWorkers.add(worker);
+		} else {
+			System.out.println("DEBUG :: Worker already preset");
 		}
 
 	}
 
 	public void assign(final Worker worker, final Project project) {
-		//TODO ::
-		/*Only workers from the pool of available workers can be assigned as long as they are not
-		 *  already assiged to the same project. The project must not be in the ACTIVE or FINISHED state. 
-		 *  The worker should not get overloaded by adding to this project. The worker can be added only 
-		 *  if the worker is helpful to the project. If the conditions are satisfied, (1) the assigned 
-		 *  worker is added to the pool of assiged workers of the company unless they were already 
-		 *  present in that pool, and (2) the worker is also added to the project. This results in at 
-		 *  least one previously unmet required qualification of the project being met.
-		 *  Note that the same worker can be in both the available pool and assigned pool of wokers 
-		 *  at the same time. However, the worker cannot be in the assigned pool if they are not in the available pool. 
-		 *  Think of the available pool as the pool of employed workers.
-		 */
-
 		if( !availableWorkers.contains(worker) || project.getWorkers().contains(worker)) {
-			//Cannot Assign worker
+			System.out.println("DEBUG :: Cannot assign worker");
 			return;
 		}
 
 		if(project.getStatus().equals(ProjectStatus.ACTIVE) || project.getStatus().equals(ProjectStatus.FINISHED) ) {
+			System.out.println("DEBUG :: Cannot assign worker Project status invalid");
 			return;
 		}
 
 		if(worker.willOverload(project)) {
+			System.out.println("DEBUG :: Cannot add worker will be overloaded");
 			return;
 		}
 
 		if(!project.isHelpful(worker)) {
+			System.out.println("DEBUG :: Cannot add worker is not helpful for this project");
 			return;
 		}
 
@@ -118,14 +102,6 @@ public class Company {
 	}
 
 	public void unassign(final Worker worker, final Project project) {
-		//TODO ::
-		/*
-		 * The worker must have been assiged to the project to be unassigned. If this was the only 
-		 * project for the worker, then delete this worker from the pool of assigned workers of 
-		 * the company. If the qualification requirements of an ACTIVE project are no longer met, 
-		 * that project is marked SUSPENDED. A PLANNED OR SUSPENDED project remains in that state.
-		 */
-
 		if(project.getWorkers().contains(worker)) {
 			project.removeWorker(worker);
 			worker.unassignProject(project);
@@ -136,18 +112,11 @@ public class Company {
 				project.setStatus(ProjectStatus.SUSPENDED);
 			}
 		} else {
-			//Worker not assigned!!!
+			System.out.println("DEBUG :: Worker not assigned to project");
 		}
 	}
 
 	public void unassignAll(final Worker worker) {
-		//TODO ::
-		/*Remove the worker from all the projects that were assigned to the worker. Also remove the 
-		 * worker from the pool of assigned workers of the company. Change the state of the affected 
-		 * projects as needed.
-		 * 
-		 */
-
 		for(final Project project : projectsCarriedout) {
 			if(project.getWorkers().contains(worker)) {
 				project.removeWorker(worker);
@@ -161,41 +130,27 @@ public class Company {
 	}
 
 	public void start(final Project project) {
-		//TODO ::
-		/*A PLANNED or SUSPENDED project may be started as long as the project's qualification 
-		 * requirements are all satisfied. This project is now in ACTIVE status. Otherwise, 
-		 * the project remains PLANNED or SUSPENDED (i.e., as it was before the method was called).
-		 * 
-		 */
 		if(!(project.getStatus().equals(ProjectStatus.PLANNED) || project.getStatus().equals(ProjectStatus.SUSPENDED))) {
+			System.out.println("DEBUG :: Project cannot be started, Invalid status to start");
 			return;
-		} else {
-			//Project not ready for start
-		}
+		} 
 
 		if(checkWorkerMeetsProjectRequirements(project)) {
 			project.setStatus(ProjectStatus.ACTIVE);
 		} else {
-			//Project not ready for start
+			System.out.println("DEBUG :: Project cannot be started, does not meet requiremnets to start");
 		}
 
 	}
 
 	public void finish(final Project project) {
-		//TOOD ::
-		/*An ACTIVE project is marked FINISHED. The project no longer has any assigned workers, 
-		 * so if a worker was only involved
-		 *  in this project, remove them from the pool of assigned workers of the company. 
-		 *  A SUSPENDED or PLANNED project remains as it was.
-		 * 
-		 */
 		if(project.getStatus().equals(ProjectStatus.ACTIVE)) {
 			project.setStatus(ProjectStatus.FINISHED);
 			for(final Worker worker : project.getWorkers()) {
 				final Set <Project> assignedProjects = worker.getAssignedProjects();
 				if(assignedProjects.size() == 1) {
 					if(assignedProjects.iterator().next().getName().equals(project.getName())) {
-						assignedWorkers.add(worker);
+						assignedWorkers.remove(worker);
 					}
 				}
 				worker.unassignProject(project);
