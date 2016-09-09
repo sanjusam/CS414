@@ -56,6 +56,7 @@ public class ProjectTest {
 		Assert.assertEquals("Network Config:0:FINISHED", projectNetworkConfigurtionLarge.toString());
 	}
 
+	/*  Testing a support method
 	@Test
 	public void testmissingQualifications() throws Exception {
 		//**Given
@@ -71,6 +72,7 @@ public class ProjectTest {
 		Assert.assertEquals(1, projectNetworkConfigurtionLarge.missingQualifications().size());
 		Assert.assertEquals(missingQualification, projectNetworkConfigurtionLarge.missingQualifications().iterator().next());
 	}
+
 
 
 	@Test
@@ -123,4 +125,5 @@ public class ProjectTest {
 		Assert.assertFalse(projectNetworkConfigurtionLarge.isHelpful(workerNotUseful));
 	}
 
+*/
 }
