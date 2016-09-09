@@ -82,6 +82,7 @@ public class WorkerTest {
 		Assert.assertEquals("Worker-1:0:2:0.0", workerOne.toString());
 	}
 
+	/*  Just testing a helper method
 	@Test
 	public void testWillOverload() throws Exception {
 		//**Given
@@ -101,7 +102,8 @@ public class WorkerTest {
 		//**Then
 		Assert.assertTrue(workerOne.willOverload(project6));
 	}
-
+	
+	
 	@Test
 	public void testGetAssignedProjects() throws Exception {
 		//**Given
@@ -123,6 +125,7 @@ public class WorkerTest {
 	}
 
 
+	
 	@Test
 	public void testUnassignAllProjects() throws Exception {
 		//**Given
@@ -140,6 +143,7 @@ public class WorkerTest {
 		//**Then
 		Assert.assertTrue(workerOne.getAssignedProjects().isEmpty());
 	}
+	
 
 	@Test
 	public void testUnassignProject() throws Exception {
@@ -159,5 +163,6 @@ public class WorkerTest {
 		//**Then
 		Assert.assertEquals(2, workerOne.getAssignedProjects().size());
 	}
+*/
 
 }

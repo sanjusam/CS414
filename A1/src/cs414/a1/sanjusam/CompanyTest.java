@@ -160,6 +160,8 @@ public class CompanyTest {
 		//**Then
 		Assert.assertEquals(0, companyOne.getAssignedWorkers().size());
 		Assert.assertEquals(1, companyOne.getAvailableWorkers().size());
+		//Assert for an internal supporting class
+		//Assert.assertEquals(0, workerOne.getAssignedProjects().size());  
 	}
 
 	@Test
@@ -220,6 +222,8 @@ public class CompanyTest {
 
 		//**Then
 		Assert.assertEquals(ProjectStatus.SUSPENDED, companyOneProject.getStatus());
+		Assert.assertEquals(1, workerOne.getAssignedProjects().size());
+		Assert.assertEquals(0, workerTwo.getAssignedProjects().size());
 	}
 
 	@Test
@@ -250,6 +254,9 @@ public class CompanyTest {
 		Assert.assertEquals(5, companyOne.getAvailableWorkers().size());
 		Assert.assertTrue(companyOne.getAvailableWorkers().contains(workerOne));
 		Assert.assertEquals(4, companyOne.getUnassignedWorkers().size());
+		Assert.assertEquals(0, workerOne.getAssignedProjects().size());
+		Assert.assertEquals(1, workerTwo.getAssignedProjects().size());
+		Assert.assertEquals(0, workerThree.getAssignedProjects().size());
 		Assert.assertEquals(ProjectStatus.SUSPENDED, companyOneProject.getStatus());
 	}
 
