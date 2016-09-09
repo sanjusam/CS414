@@ -71,29 +71,29 @@ public class Company {
 		if(!availableWorkers.contains(worker)) {
 			availableWorkers.add(worker);
 		} else {
-			System.out.println("DEBUG :: Worker already preset");
+			//"DEBUG :: Worker already preset"
 		}
 
 	}
 
 	public void assign(final Worker worker, final Project project) {
 		if( !availableWorkers.contains(worker) || project.getWorkers().contains(worker)) {
-			System.out.println("DEBUG :: Cannot assign worker");
+			//"DEBUG :: Cannot assign worker"
 			return;
 		}
 
 		if(project.getStatus().equals(ProjectStatus.ACTIVE) || project.getStatus().equals(ProjectStatus.FINISHED) ) {
-			System.out.println("DEBUG :: Cannot assign worker Project status invalid");
+			//"DEBUG :: Cannot assign worker Project status invalid"
 			return;
 		}
 
 		if(worker.willOverload(project)) {
-			System.out.println("DEBUG :: Cannot add worker will be overloaded");
+			//"DEBUG :: Cannot add worker will be overloaded"
 			return;
 		}
 
 		if(!project.isHelpful(worker)) {
-			System.out.println("DEBUG :: Cannot add worker is not helpful for this project");
+			//"DEBUG :: Cannot add worker is not helpful for this project"
 			return;
 		}
 
@@ -112,7 +112,7 @@ public class Company {
 				project.setStatus(ProjectStatus.SUSPENDED);
 			}
 		} else {
-			System.out.println("DEBUG :: Worker not assigned to project");
+			//"DEBUG :: Worker not assigned to project"
 		}
 	}
 
@@ -131,14 +131,14 @@ public class Company {
 
 	public void start(final Project project) {
 		if(!(project.getStatus().equals(ProjectStatus.PLANNED) || project.getStatus().equals(ProjectStatus.SUSPENDED))) {
-			System.out.println("DEBUG :: Project cannot be started, Invalid status to start");
+			//"DEBUG :: Project cannot be started, Invalid status to start"
 			return;
 		} 
 
 		if(checkWorkerMeetsProjectRequirements(project)) {
 			project.setStatus(ProjectStatus.ACTIVE);
 		} else {
-			System.out.println("DEBUG :: Project cannot be started, does not meet requiremnets to start");
+			//"DEBUG :: Project cannot be started, does not meet requiremnets to start"
 		}
 
 	}
