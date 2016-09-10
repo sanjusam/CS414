@@ -67,41 +67,46 @@ public class Company {
 	}
 
 
-	public void addToAvailableWorkerPool(final Worker worker) {
+	public void addToAvailableWorkerPool(final Worker worker) throws Exception {
+		if(worker == null) {
+			throw new Exception("project or worker cannot be null");
+		}
 		if(!availableWorkers.contains(worker)) {
 			availableWorkers.add(worker);
 		} else {
-			//"DEBUG :: Worker already preset"
+			throw new Exception("Worker already in the available list");
 		}
 
 	}
 
-	public void assign(final Worker worker, final Project project) {
+	public void assign(final Worker worker, final Project project) throws Exception {
+		if(project == null || worker == null) {
+			throw new Exception("project or worker cannot be null");
+		}
+		
 		if( !availableWorkers.contains(worker) || project.getWorkers().contains(worker)) {
-			//"DEBUG :: Cannot assign worker"
-			return;
+			throw new Exception("Cannot assign worker - worker not available or project already contains worker");
 		}
 
 		if(project.getStatus().equals(ProjectStatus.ACTIVE) || project.getStatus().equals(ProjectStatus.FINISHED) ) {
-			//"DEBUG :: Cannot assign worker Project status invalid"
-			return;
+			throw new Exception("Cannot assign worker Project status invalid");
 		}
 
 		if(worker.willOverload(project)) {
-			//"DEBUG :: Cannot add worker will be overloaded"
-			return;
+			throw new Exception("Cannot add worker will be overloaded");
 		}
 
 		if(!project.isHelpful(worker)) {
-			//"DEBUG :: Cannot add worker is not helpful for this project"
-			return;
+			throw new Exception("Cannot add worker is not helpful for this project");
 		}
 
-		assignedWorkers.add(worker);
+		if(!assignedWorkers.contains(worker)) {
+			assignedWorkers.add(worker);
+		}
 		assignWorkerToProject(worker, project);
 	}
 
-	public void unassign(final Worker worker, final Project project) {
+	public void unassign(final Worker worker, final Project project) throws Exception {
 		if(project.getWorkers().contains(worker)) {
 			project.removeWorker(worker);
 			worker.unassignProject(project);
@@ -112,7 +117,7 @@ public class Company {
 				project.setStatus(ProjectStatus.SUSPENDED);
 			}
 		} else {
-			//"DEBUG :: Worker not assigned to project"
+			throw new Exception("Worker not assigned to project");
 		}
 	}
 
@@ -129,21 +134,23 @@ public class Company {
 		assignedWorkers.remove(worker);
 	}
 
-	public void start(final Project project) {
+	public void start(final Project project) throws Exception {
 		if(!(project.getStatus().equals(ProjectStatus.PLANNED) || project.getStatus().equals(ProjectStatus.SUSPENDED))) {
-			//"DEBUG :: Project cannot be started, Invalid status to start"
-			return;
+			throw new Exception("Project cannot be started, Invalid status to start");
 		} 
 
 		if(checkWorkerMeetsProjectRequirements(project)) {
 			project.setStatus(ProjectStatus.ACTIVE);
 		} else {
-			//"DEBUG :: Project cannot be started, does not meet requiremnets to start"
+			throw new Exception("Project cannot be started, does not meet requiremnets to start");
 		}
 
 	}
 
-	public void finish(final Project project) {
+	public void finish(final Project project) throws Exception {
+		if(project == null) {
+			throw new Exception("Project cannot be null");
+		}
 		if(project.getStatus().equals(ProjectStatus.ACTIVE)) {
 			project.setStatus(ProjectStatus.FINISHED);
 			for(final Worker worker : project.getWorkers()) {
@@ -157,7 +164,6 @@ public class Company {
 			}
 			project.removeAllWorkers();
 		}
-
 	}
 
 	public Project createProject(final String projectName, final Set<Qualification> qualificationSet, final ProjectSize size,

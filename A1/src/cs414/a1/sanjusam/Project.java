@@ -53,6 +53,12 @@ public class Project {
 				return true;
 			}
 		}
+		//Please refer Overview explicitly added to mark a worker "useful" if he has any of the project requirement.
+		for (final Qualification workerQualification : worker.getQualifications()) {
+			if(qualificationRequirements.contains(workerQualification)) {
+				return true;
+			}
+		}
 		return false;
 	}
 

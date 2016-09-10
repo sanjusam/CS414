@@ -38,7 +38,4 @@ public class Qualification {
 	public String toString() {
 		return description;
 	}
-
-
-
 }

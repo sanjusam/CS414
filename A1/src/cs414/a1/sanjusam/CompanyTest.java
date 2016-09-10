@@ -99,14 +99,19 @@ public class CompanyTest {
 
 	@Test
 	public void testCreateProjectAndAssignWorkersFailure() throws Exception {
-		//**Given
+		//**Given -- Invalid status of project
 		final Project companyOneProject = companyOne.createProject("Netowork-Configs", qualificationNeeded, ProjectSize.MEDIUM, ProjectStatus.PLANNED);
 		final Worker workerOne = new Worker("Sanju1", qualificationSetOne);  
 		companyOne.addToAvailableWorkerPool(workerOne);
 		companyOneProject.setStatus(ProjectStatus.FINISHED);
 
 		//**When
-		companyOne.assign(workerOne, companyOneProject);
+		try {
+			companyOne.assign(workerOne, companyOneProject);
+			Assert.fail("The above line should have trown an exeption");
+		} catch(final Exception e) {
+			Assert.assertEquals("Cannot assign worker Project status invalid", e.getMessage());
+		}
 
 		//**Then
 		Assert.assertEquals(0, companyOne.getAssignedWorkers().size());
@@ -120,7 +125,12 @@ public class CompanyTest {
 		final Worker workerOne = new Worker("Sanju1", qualificationNeeded);
 
 		//**When
-		companyOne.assign(workerOne, companyOneProject);
+		try {
+			companyOne.assign(workerOne, companyOneProject);
+			Assert.fail("The above line should have thrown an exception");
+		} catch(final Exception e) {
+			Assert.assertEquals("Cannot assign worker - worker not available or project already contains worker", e.getMessage());
+		}
 
 		//**Then
 		Assert.assertEquals(0, companyOne.getAssignedWorkers().size());
@@ -140,8 +150,12 @@ public class CompanyTest {
 		workerOne.assignProject(new Project("Project5", ProjectSize.LARGE, ProjectStatus.PLANNED));
 
 		//**When
-		companyOne.assign(workerOne, companyOneProject);
-
+		try {
+			companyOne.assign(workerOne, companyOneProject);
+			Assert.fail("The above line should have thrown an exception");
+		} catch(final Exception e) {
+			Assert.assertEquals("Cannot add worker will be overloaded", e.getMessage());
+		}
 		//**Then -- Worker not assigned
 		Assert.assertEquals(0, companyOne.getAssignedWorkers().size());
 		Assert.assertEquals(1, companyOne.getAvailableWorkers().size());		
@@ -155,7 +169,12 @@ public class CompanyTest {
 		companyOne.addToAvailableWorkerPool(workerOne);
 
 		//**When
-		companyOne.assign(workerOne, companyOneProject);
+		try {
+			companyOne.assign(workerOne, companyOneProject);
+			Assert.fail("The above line should have thrown an exception.");
+		} catch(final Exception e) {
+			Assert.assertEquals("Cannot add worker is not helpful for this project", e.getMessage());
+		}
 
 		//**Then
 		Assert.assertEquals(0, companyOne.getAssignedWorkers().size());
@@ -260,6 +279,30 @@ public class CompanyTest {
 		Assert.assertEquals(ProjectStatus.SUSPENDED, companyOneProject.getStatus());
 	}
 
+	@Test
+	public void testStartWithInvalidStatusFailureOne() throws Exception {
+		final Project companyOneProject = companyOne.createProject("Netowork-Configs", qualificationNeeded, ProjectSize.MEDIUM, ProjectStatus.PLANNED);
+		companyOneProject.setStatus(ProjectStatus.ACTIVE);
+		try {
+			companyOne.start(companyOneProject);
+			Assert.fail("The above line should have failed");
+		} catch(final Exception e) {
+			Assert.assertEquals("Project cannot be started, Invalid status to start", e.getMessage());
+		}
+	}
+	
+	@Test
+	public void testStartWithInvalidStatusFailureTwo() throws Exception {
+		final Project companyOneProject = companyOne.createProject("Netowork-Configs", qualificationNeeded, ProjectSize.MEDIUM, ProjectStatus.PLANNED);
+		companyOneProject.setStatus(ProjectStatus.FINISHED);
+		try {
+			companyOne.start(companyOneProject);
+			Assert.fail("The above line should have failed");
+		} catch(final Exception e) {
+			Assert.assertEquals("Project cannot be started, Invalid status to start", e.getMessage());
+		}
+	}
+	
 
 	@Test
 	public void testStartProjectFailureOnProjectStatus() throws Exception {
@@ -280,7 +323,12 @@ public class CompanyTest {
 		companyOneProject.setStatus(ProjectStatus.ACTIVE);
 
 		//**When
-		companyOne.start(companyOneProject);
+		try {
+			companyOne.start(companyOneProject);
+			Assert.fail("The above line should have failed");
+		} catch(final Exception e) {
+			Assert.assertEquals("Project cannot be started, Invalid status to start", e.getMessage());
+		}
 
 		//**Then  -- Status does not change.
 		Assert.assertEquals(ProjectStatus.ACTIVE, companyOneProject.getStatus());
@@ -298,14 +346,19 @@ public class CompanyTest {
 		companyOne.addToAvailableWorkerPool(workerTwo);
 		companyOne.addToAvailableWorkerPool(workerThree);
 		companyOne.addToAvailableWorkerPool(workerFive);
+		
 		companyOne.assign(workerOne, companyOneProject);
 		companyOne.assign(workerTwo, companyOneProject);
 		companyOne.assign(workerThree, companyOneProject);
-		companyOne.assign(workerFour, companyOneProject);
 		companyOne.assign(workerFive, companyOneProject);
 
 		//**When
-		companyOne.start(companyOneProject);
+		try {
+			companyOne.start(companyOneProject);
+			Assert.fail("The above call should have failed");
+		} catch(final Exception e) {
+			Assert.assertEquals("Project cannot be started, does not meet requiremnets to start", e.getMessage());
+		}
 
 		//**Then  -- Status does not change.
 		Assert.assertEquals(ProjectStatus.PLANNED, companyOneProject.getStatus());
@@ -364,8 +417,59 @@ public class CompanyTest {
 
 		//**Then  -- Status does not change.
 		Assert.assertEquals(ProjectStatus.FINISHED, companyOneProject.getStatus());
-		Assert.assertEquals(0, companyOneProject.getWorkers().size());
 		Assert.assertEquals(0,  companyOne.getAssignedWorkers().size());
 	}
+	
+	@Test
+	public void testProjectStatusWhenWorkerIsRemoved() throws Exception {
+		//**Given -- Project needs java, workerOne has java and workerTwo has java and c++
+		qualificationNeeded.clear();
+		qualificationNeeded.add(new Qualification("Java"));
+		final Project networkProject = companyOne.createProject("Netowork-Configs", qualificationNeeded, ProjectSize.SMALL, ProjectStatus.PLANNED);
+		qualificationSetTwo.add(new Qualification("Java"));
+		final Worker workerOne = new Worker("Sanju1", qualificationSetOne);  
+		final Worker workerTwo = new Worker("Sanju2", qualificationSetTwo);
+		companyOne.addToAvailableWorkerPool(workerOne);
+		companyOne.addToAvailableWorkerPool(workerTwo);
+		companyOne.assign(workerOne, networkProject);
+		companyOne.assign(workerTwo, networkProject);
+		companyOne.start(networkProject);
+		Assert.assertEquals(ProjectStatus.ACTIVE, networkProject.getStatus());
+		
+		//**When  -- workerOne with just "java" is removed
+		companyOne.unassign(workerOne, networkProject);
+		
+		//*Then  -- Project status does not change
+		Assert.assertEquals(ProjectStatus.ACTIVE, networkProject.getStatus());
+	}
+
+	@Test
+	public void testunassignWorkFromProjectFailure() throws Exception {
+		//**Given -- workerOne assigned to project
+		qualificationNeeded.clear();
+		qualificationNeeded.add(new Qualification("Java"));
+		final Project networkProject = companyOne.createProject("Netowork-Configs", qualificationNeeded, ProjectSize.SMALL, ProjectStatus.PLANNED);
+		qualificationSetTwo.add(new Qualification("Java"));
+		final Worker workerOne = new Worker("Sanju1", qualificationSetOne);  
+		final Worker workerTwo = new Worker("Sanju2", qualificationSetTwo);
+		companyOne.addToAvailableWorkerPool(workerOne);
+		companyOne.addToAvailableWorkerPool(workerTwo);
+		companyOne.assign(workerOne, networkProject);
+		
+		companyOne.start(networkProject);
+		Assert.assertEquals(ProjectStatus.ACTIVE, networkProject.getStatus());
+		
+		//**When  -- workerTwo, not assigned to project is removed.
+		try{ 
+			companyOne.unassign(workerTwo, networkProject);
+			Assert.fail("The above statement should have thrown exception");
+		} catch(final Exception e) {
+			Assert.assertEquals("Worker not assigned to project", e.getMessage());
+		}
+		
+		//*Then -- Assert no change to the project 
+		Assert.assertEquals(ProjectStatus.ACTIVE, networkProject.getStatus());
+	}
+	
 
 }
